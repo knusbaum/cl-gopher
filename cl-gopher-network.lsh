@@ -1,0 +1,6 @@
+#!/usr/bin/sbcl --script
+
+(load "~/.sbclrc")
+(ql:quickload 'cl-gopher)
+(format t "Starting gopher browser on port 7070.~%")
+(cl-gopher:network-browser 7070)

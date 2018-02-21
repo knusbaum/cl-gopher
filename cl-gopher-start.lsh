@@ -1,0 +1,5 @@
+#!/usr/bin/sbcl --script
+
+(load "~/.sbclrc")
+(ql:quickload 'cl-gopher)
+(cl-gopher:text-browser)
