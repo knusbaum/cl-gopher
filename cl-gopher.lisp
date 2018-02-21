@@ -12,7 +12,8 @@
   ((content-string :initform nil :initarg :content-string :accessor content-string)))
 
 (defclass binary-file-contents (selector-contents)
-  ((content-array :initform nil :initarg :content-array :accessor content-array)))
+  ((file-name :initform nil :initarg :file-name :accessor file-name)
+   (content-array :initform nil :initarg :content-array :accessor content-array)))
 
 (defgeneric display-contents (contents &key stream))
 (defmethod display-contents ((contents submenu-contents) &key (stream *standard-output*))
@@ -26,7 +27,8 @@
   (write-string (content-string contents) stream))
 
 (defmethod display-contents ((contents binary-file-contents) &key (stream *standard-output*))
-  (format stream "Binary file of length ~a bytes~%" (length (content-array contents))))
+  (format stream "Binary file \"~a\" of length ~a bytes~%"
+          (file-name contents) (length (content-array contents))))
 
 (defclass gopher-line ()
   ((display-string :initform nil :initarg :display-string :accessor display-string)
@@ -184,9 +186,11 @@
       (with-gopher-socket-for-selector (sock-stream hostname port selector)
         (loop for c = (read-byte sock-stream nil nil)
               while c
-              do (vector-push-extend c byte-arr))))
-    (make-instance 'binary-file-contents
-                   :content-array byte-arr)))
+              do (vector-push-extend c byte-arr)))
+      (let ((filename (file-namestring selector)))
+        (make-instance 'binary-file-contents
+                       :content-array byte-arr
+                       :file-name filename)))))
 
 (defun retreive-submenu-contents (hostname port selector)
   (with-gopher-socket-for-selector (sock-stream hostname port selector)

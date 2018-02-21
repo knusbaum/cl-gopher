@@ -2,4 +2,4 @@
 
 (load "~/.sbclrc")
 (ql:quickload 'cl-gopher)
-(cl-gopher:text-browser)
+(cl-gopher:text-browser :allow-downloads t)
