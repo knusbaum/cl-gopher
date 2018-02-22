@@ -72,7 +72,9 @@
                                                               :hostname "SDF.org"
                                                               :port 70)))
            do (display-contents (car stack) :stream output-stream)
-             (let ((result (handle-contents (car stack) :input-stream input-stream :output-stream output-stream)))
+             (let ((result (handle-contents (car stack)
+                                            :input-stream input-stream
+                                            :output-stream output-stream)))
                (when result
                  (if (eq result :back)
                      (when (> (length stack) 1) (pop stack))
@@ -80,19 +82,12 @@
     (hangup-error () nil)))
 
 (defun network-browser (&optional (port 7070))
-  (iolib:with-open-socket (sock
-                           :external-format  '(:ISO-8859-1 :eol-style :crlf)
-                           :connect :passive
-                           :address-family :internet
-                           :type :stream)
-    (iolib:bind-address sock
-                        iolib:+ipv4-unspecified+
-                        :port port
-                        :reuse-addr t)
-    (iolib:listen-on sock)
-    (loop
-       do (let ((accepted (iolib:accept-connection sock)))
-            (bt:make-thread (lambda ()
-                              (unwind-protect
-                                   (text-browser :input-stream accepted :output-stream accepted)
-                                (close accepted))))))))
+  (usocket:with-socket-listener (sock nil port)
+    (loop do (let* ((accept-sock (usocket:socket-accept sock :element-type '(unsigned-byte 8)))
+                    (accepted (flexi-streams:make-flexi-stream (usocket:socket-stream accept-sock)
+                                                               :external-format (flexi-streams:make-external-format :iso-8859-1 :eol-style :crlf))))
+               (bt:make-thread (lambda ()
+                                 (unwind-protect
+                                      (text-browser :input-stream accepted :output-stream accepted)
+                                   (close accepted)
+                                   (usocket:socket-close accept-sock))))))))
