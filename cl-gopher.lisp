@@ -168,7 +168,7 @@
 
 (defmacro with-gopher-socket-for-selector ((stream host port selector) &rest body)
   (let ((sock (gensym "sock")))
-    `(let* ((,sock (usocket:socket-connect "knusbaum.com" 70 :element-type '(unsigned-byte 8)))
+    `(let* ((,sock (usocket:socket-connect ,host ,port :element-type '(unsigned-byte 8)))
             (,stream (flexi-streams:make-flexi-stream
                       (usocket:socket-stream ,sock)
                       :external-format (flexi-streams:make-external-format :iso-8859-1
