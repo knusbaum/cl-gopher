@@ -3,6 +3,20 @@
 (defvar *allow-downloads*)
 
 (define-condition hangup-error (error) ())
+(define-condition quit-condition () ())
+
+(defun pause-line (input-stream &key prompt-stream)
+  (when prompt-stream
+    (format prompt-stream "Press return to continue...~%")
+    (force-output prompt-stream))
+  (when (null (read-line input-stream nil nil))
+    (error 'hangup-error)))
+
+(defun get-client-response (stream)
+  (let ((response (read-line stream nil nil)))
+    (when (null response)
+      (error 'hangup-error))
+    response))
 
 (defgeneric handle-line-selection (line &key input-stream output-stream))
 (defmethod handle-line-selection ((line gopher-line) &key (input-stream *standard-input*) (output-stream *standard-output*))
@@ -11,42 +25,40 @@
 (defmethod handle-line-selection ((line search-line) &key (input-stream *standard-input*) (output-stream *standard-output*))
   (format output-stream "Enter your search terms:~%> ")
   (force-output output-stream)
-  (let ((terms (read-line input-stream nil nil)))
-    (when (null terms)
-      (error 'hangup-error))
+  (let ((terms (get-client-response input-stream)))
     (setf (terms line) terms)
     (get-line-target line)))
 
+(defun write-help (input-stream output-stream)
+  (format output-stream "A number navigates to a menu item.~%back moves back a page~%quit quits the browser.~%")
+  (pause-line input-stream :prompt-stream output-stream))
+
 (defgeneric handle-contents (contents &key input-stream output-stream))
 (defmethod handle-contents ((contents submenu-contents) &key (input-stream *standard-input*) (output-stream *standard-output*))
-  (format output-stream "Select a line number or \"back\" to go back.~%> ")
+  (format output-stream "Select a line number, or \"help\".~%> ")
   (force-output output-stream)
-  (let ((line (read-line input-stream nil nil)))
-    (when (null line)
-      (error 'hangup-error))
+  (let ((line (get-client-response input-stream)))
     (let ((choice (parse-integer line :junk-allowed t)))
       (cond
         ((equalp line "back") :back)
+        ((equalp line "help") (write-help input-stream output-stream))
+        ((equalp line "quit") (error 'quit-condition))
         ((and choice (< choice (length (lines contents))))
          (handle-line-selection (elt (lines contents) choice)
                                 :input-stream input-stream
                                 :output-stream output-stream))
-        (t (format output-stream "You made an invalid choice. Please select a line number to browse.~%"))))))
+        (t (format output-stream "You made an invalid choice. Please select a line number to browse.~%")
+           (pause-line input-stream :prompt-stream output-stream))))))
 
 (defmethod handle-contents ((contents selector-contents) &key (input-stream *standard-input*) (output-stream *standard-output*))
-  (format output-stream "Press return to continue...~%")
-  (force-output output-stream)
-  (when (null (read-line input-stream nil nil))
-    (error 'hangup-error))
+  (pause-line input-stream :prompt-stream output-stream)
   :back)
 
 (defmethod handle-contents ((contents binary-file-contents) &key (input-stream *standard-input*) (output-stream *standard-output*))
   (when *allow-downloads*
     (format output-stream "Save File? [Y/n]: ")
     (force-output output-stream)
-    (let ((response (read-line input-stream nil nil)))
-      (when (null response)
-        (error 'hangup-error))
+    (let ((response (get-client-response input-stream)))
       (when (not (equalp response "n"))
         (let ((file-path (format nil "/tmp/~a" (file-name contents))))
           (with-open-file (os file-path
@@ -56,10 +68,7 @@
             (loop for byte across (content-array contents)
                   do (write-byte byte os)))
           (format output-stream "File written to ~a~%" file-path)))))
-  (format output-stream "Press return to continue...~%")
-  (force-output output-stream)
-  (when (null (read-line input-stream nil nil))
-    (error 'hangup-error))
+  (pause-line input-stream :prompt-stream output-stream)
   :back)
 
 (defun text-browser (&key (input-stream *standard-input*) (output-stream *standard-output*) allow-downloads)
@@ -79,7 +88,8 @@
                  (if (eq result :back)
                      (when (> (length stack) 1) (pop stack))
                      (push result stack))))))
-    (hangup-error () nil)))
+    (hangup-error () nil)
+    (quit-condition () nil)))
 
 (defun network-browser (&optional (port 7070))
   (usocket:with-socket-listener (sock nil port)
