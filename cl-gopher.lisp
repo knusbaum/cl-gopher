@@ -229,27 +229,27 @@
       (make-instance 'html-file-contents
                      :content-string (drakma:http-request (subseq selector 4))))))
 
-(defgeneric display-line (gl &key stream line-number show-target))
-(defmethod display-line ((gl gopher-line) &key (stream *standard-output*) line-number show-target)
+(defgeneric display-line (gl &key stream line-number show-target include-newline))
+(defmethod display-line ((gl gopher-line) &key (stream *standard-output*) line-number show-target include-newline)
   (if show-target
-      (format stream "~6a ~14a ~a    ~a:~a~a~%"
+      (format stream "~6a ~14a ~a    ~a:~a~a~:[~;~%~]"
               (or line-number #\Space)
               (line-type gl) (display-string gl)
-              (hostname gl) (port gl) (selector gl))
-      (format stream "~6a ~a ~a~%"
+              (hostname gl) (port gl) (selector gl) include-newline)
+      (format stream "~6a ~a ~a~:[~;~%~]"
               (or line-number #\Space)
-              (line-type gl) (display-string gl))))
+              (line-type gl) (display-string gl) include-newline)))
 
-(defmethod display-line ((gl info-message) &key (stream *standard-output*) line-number show-target)
+(defmethod display-line ((gl info-message) &key (stream *standard-output*) line-number show-target include-newline)
   (declare (ignore line-number show-target))
-  (format stream "~a~a~%" #\tab (display-string gl)))
+  (format stream "~a~a~:[~;~%~]" #\tab (display-string gl) include-newline))
 
 (defun display-lines (lines &key (stream *standard-output*) with-line-nums show-target)
   (loop for elem in lines
         for i from 0
         do (if with-line-nums
-               (display-line elem :stream stream :show-target show-target :line-number i)
-               (display-line elem :stream stream :show-target show-target))))
+               (display-line elem :stream stream :show-target show-target :line-number i :include-newline t)
+               (display-line elem :stream stream :show-target show-target :include-newline t))))
 
 (defgeneric write-gopher-line (gl &key stream))
 (defmethod write-gopher-line ((gl gopher-line) &key (stream *standard-output*))
