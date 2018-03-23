@@ -182,8 +182,8 @@
          (close ,stream)
          (usocket:socket-close ,sock)))))
 
-(defgeneric get-line-target (gl))
-(defmethod get-line-target ((gl gopher-line))
+(defgeneric get-line-contents (gl))
+(defmethod get-line-contents ((gl gopher-line))
   (let ((byte-arr (make-array 0 :element-type '(unsigned-byte 8) :adjustable t :fill-pointer 0)))
     (with-slots (hostname port selector) gl
       (with-gopher-socket-for-selector (sock-stream hostname port selector)
@@ -202,18 +202,18 @@
                                 while line
                                 collect line))))
 
-(defmethod get-line-target ((gl submenu))
+(defmethod get-line-contents ((gl submenu))
   (with-slots (hostname port selector) gl
     (retreive-submenu-contents hostname port selector)))
 
-(defmethod get-line-target ((gl search-line))
+(defmethod get-line-contents ((gl search-line))
   (let ((selector (format nil "~a~a~a"
                           (selector gl)
                           #\tab
                           (terms gl))))
     (retreive-submenu-contents (hostname gl) (port gl) selector)))
 
-(defmethod get-line-target ((gl text-file))
+(defmethod get-line-contents ((gl text-file))
   (with-slots (hostname port selector) gl
     (with-gopher-socket-for-selector (sock-stream hostname port selector)
       (make-instance 'text-file-contents
@@ -221,7 +221,7 @@
                                   while line
                                   collect line)))))
 
-(defmethod get-line-target ((gl html-file))
+(defmethod get-line-contents ((gl html-file))
   (with-slots (hostname port selector) gl
     (when (and
            (> (length selector) 4)
@@ -271,10 +271,70 @@
           #\Tab
           #\Tab))
 
-(defun download-file (destfile host port selector)
-  (with-gopher-socket-for-selector (sock-stream host port selector)
-    (with-open-file (os destfile :direction :output :if-exists :supersede :element-type '(unsigned-byte 8))
-      (loop with arr = (make-array 2048 :element-type '(unsigned-byte 8))
-            for count = (read-sequence arr sock-stream)
-            while (> count 0)
-            do (write-sequence arr os :end count)))))
+(defun download-file (destfile gl)
+  (with-slots (hostname port selector) gl
+    (with-gopher-socket-for-selector (sock-stream hostname port selector)
+      (with-open-file (os destfile :direction :output :if-exists :supersede :element-type '(unsigned-byte 8))
+        (loop with arr = (make-array 2048 :element-type '(unsigned-byte 8))
+              for count = (read-sequence arr sock-stream)
+              while (> count 0)
+              do (write-sequence arr os :end count))))))
+
+
+;;; URL-parsing
+
+(define-condition bad-uri-error (error)
+  ((uri :initarg :uri :reader uri)))
+
+(defmethod print-object ((e bad-uri-error) stream)
+  (print-unreadable-object (e stream :type t)
+    (format stream "Failed to determine selector and gopher type for URI: ~a" (uri e))))
+
+(defun compute-selector (uri path)
+  ;; The root selector or null selector should return "/"
+  (when (or (null path)
+            (equal path "/"))
+    (return-from compute-selector "/"))
+
+  (cond
+    ((> (length path) 2) (subseq path 2)) ; Cut off the selector type
+    ((= (length path) 2) "/") ; If the selector includes *ONLY* the type, return root selector
+    (t (error 'bad-uri-error :uri uri))))
+
+(defun compute-item-type (uri path)
+  ;; The root selector or null selector should return :submenu
+  (when (or (null path)
+            (equal path "/"))
+    (return-from compute-item-type :submenu))
+
+  ;; Must include at least the initial slash and the type
+  (if (and (>= (length path) 2)
+           (equal (elt path 0) #\/)
+           (type-for-character (elt path 1)))
+      (type-for-character (elt path 1))
+      (error 'bad-uri-error :uri uri)))
+
+(defun parse-gopher-uri (uri &key (display-string "???"))
+  (when (not (null uri))
+    (let* ((uri
+            (if (and (>= (length uri) 9) (equal "gopher://" (subseq uri 0 9)))
+                (quri:uri uri)
+                (quri:uri (format nil "gopher://~a" uri))))
+           (path (quri:uri-path uri))
+           (item-type (compute-item-type uri path))
+           (selector (compute-selector uri path))
+           (host (quri:uri-host uri))
+           (port (or (quri:uri-port uri) 70)))
+      (make-instance (class-for-type item-type)
+                     :display-string display-string
+                     :selector selector
+                     :hostname host
+                     :port port))))
+
+(defun uri-for-gopher-line (gl)
+  (if (or (null (selector gl))
+          (equal (selector gl) "")
+          (equal (selector gl) "/"))
+      (format nil "gopher://~a:~a/" (hostname gl) (port gl))
+      (format nil "gopher://~a:~a/~c~a"
+              (hostname gl) (port gl) (type-character gl) (selector gl))))

@@ -20,14 +20,14 @@
 
 (defgeneric handle-line-selection (line &key input-stream output-stream))
 (defmethod handle-line-selection ((line gopher-line) &key (input-stream *standard-input*) (output-stream *standard-output*))
-  (get-line-target line))
+  (get-line-contents line))
 
 (defmethod handle-line-selection ((line search-line) &key (input-stream *standard-input*) (output-stream *standard-output*))
   (format output-stream "Enter your search terms:~%> ")
   (force-output output-stream)
   (let ((terms (get-client-response input-stream)))
     (setf (terms line) terms)
-    (get-line-target line)))
+    (get-line-contents line)))
 
 (defun write-help (input-stream output-stream)
   (format output-stream "A number navigates to a menu item.~%back moves back a page~%quit quits the browser.~%")
@@ -75,7 +75,7 @@
   (handler-case
       (let ((*allow-downloads* allow-downloads))
         (loop
-           with stack = (list (get-line-target (make-instance 'submenu
+           with stack = (list (get-line-contents (make-instance 'submenu
                                                               :display-string "SDF.org"
                                                               :selector "/"
                                                               :hostname "SDF.org"
