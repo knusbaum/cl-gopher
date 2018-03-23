@@ -153,6 +153,28 @@
   (loop for line in gls
         collect (unmarshall-gopher-line line)))
 
+(defun make-unknown (line-elems)
+  ;; Can probably do a better job of determining
+  ;; if this line is gopher-like or not.
+  ;; Currently, we just check if it has 4 elements
+  ;; that are separated by tabs.
+  (if (< (length line-elems) 4)
+      (make-instance 'unknown
+                     :display-string "Unknown or Invalid line"
+                     :selector ""
+                     :hostname "error.host"
+                     :port 1)
+      (let* ((initial-display-string (string-trim '(#\Space #\Tab) (elt line-elems 0)))
+             (display-string (if (equal initial-display-string "")
+                                "Unknown or Invalid line"
+                                initial-display-string)))
+        (make-instance 'unknown
+                       :display-string display-string
+                       :selector (elt line-elems 1)
+                       :hostname (elt line-elems 2)
+                       :port (parse-integer (elt line-elems 3))))))
+
+
 (defun read-gopher-line (is)
   (let* ((line (read-line is nil nil)))
     (when (and line
@@ -161,11 +183,7 @@
       (let ((line-elems (split-sequence #\tab (subseq line 1)))
             (type (type-for-character (elt line 0))))
         (if (eq type :unknown)
-            (make-instance 'unknown
-                           :display-string "Unknown or Invalid line"
-                           :selector ""
-                           :hostname "error.host"
-                           :port 1)
+            (make-unknown line-elems)
             (make-instance (class-for-type type)
                            :display-string (elt line-elems 0)
                            :selector (elt line-elems 1)
