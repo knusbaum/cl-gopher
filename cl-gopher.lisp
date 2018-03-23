@@ -87,7 +87,6 @@
 
 (defgeneric type-character (gl))
 (defmethod type-character ((gl text-file)) #\0)
-(defmethod type-character ((gl text-file)) #\0)
 (defmethod type-character ((gl submenu)) #\1)
 (defmethod type-character ((gl ccso-nameserver)) #\2)
 (defmethod type-character ((gl error-code)) #\3)
@@ -105,6 +104,7 @@
 (defmethod type-character ((gl html-file)) #\h)
 (defmethod type-character ((gl info-message)) #\i)
 (defmethod type-character ((gl sound-file)) #\s)
+(defmethod type-character ((gl gopher-line)) #\?) ; Catch-all
 
 (defgeneric copy-gopher-line (gl))
 (defmethod copy-gopher-line ((gl gopher-line))
@@ -121,6 +121,13 @@
                  :hostname (hostname gl)
                  :port (port gl)
                  :terms (terms gl)))
+
+(defun convert-to-text-line (gl)
+  (make-instance 'text-file
+                 :display-string (display-string gl)
+                 :selector (selector gl)
+                 :hostname (hostname gl)
+                 :port (port gl)))
 
 (defmethod print-object ((gl gopher-line) stream)
   (print-unreadable-object (gl stream :type t)
@@ -153,17 +160,15 @@
   (loop for line in gls
         collect (unmarshall-gopher-line line)))
 
+(define-condition bad-submenu-error (error) ())
+
 (defun make-unknown (line-elems)
   ;; Can probably do a better job of determining
   ;; if this line is gopher-like or not.
   ;; Currently, we just check if it has 4 elements
   ;; that are separated by tabs.
   (if (< (length line-elems) 4)
-      (make-instance 'unknown
-                     :display-string "Unknown or Invalid line"
-                     :selector ""
-                     :hostname "error.host"
-                     :port 1)
+      (error 'bad-submenu-error)
       (let* ((initial-display-string (string-trim '(#\Space #\Tab) (elt line-elems 0)))
              (display-string (if (equal initial-display-string "")
                                 "Unknown or Invalid line"

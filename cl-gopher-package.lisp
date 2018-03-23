@@ -72,6 +72,8 @@
    line-type
    copy-gopher-line
    download-file
+   convert-to-text-line
+   bad-submenu-error
 
    ;; Built-in clients
    text-browser
