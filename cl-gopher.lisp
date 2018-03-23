@@ -55,6 +55,7 @@
 (defclass html-file (gopher-line) ())
 (defclass info-message (gopher-line) ())
 (defclass sound-file (gopher-line) ())
+(defclass unknown (gopher-line) ())
 
 (defun class-for-type (type)
   (find-symbol (string type) :cl-gopher))
@@ -81,7 +82,8 @@
     (#\T :telnet-3270)
     (#\h :html-file)
     (#\i :info-message)
-    (#\s :sound-file)))
+    (#\s :sound-file)
+    (t :unknown)))
 
 (defgeneric type-character (gl))
 (defmethod type-character ((gl text-file)) #\0)
@@ -107,7 +109,6 @@
 (defgeneric copy-gopher-line (gl))
 (defmethod copy-gopher-line ((gl gopher-line))
   (make-instance (class-of gl)
-                 :line-type (line-type gl)
                  :display-string (display-string gl)
                  :selector (selector gl)
                  :hostname (hostname gl)
@@ -115,7 +116,6 @@
 
 (defmethod copy-gopher-line ((gl search-line))
   (make-instance 'search-line
-                 :line-type (line-type gl)
                  :display-string (display-string gl)
                  :selector (selector gl)
                  :hostname (hostname gl)
@@ -160,11 +160,17 @@
                (> (length line) 0))
       (let ((line-elems (split-sequence #\tab (subseq line 1)))
             (type (type-for-character (elt line 0))))
-        (make-instance (class-for-type type)
-                       :display-string (elt line-elems 0)
-                       :selector (elt line-elems 1)
-                       :hostname (elt line-elems 2)
-                       :port (parse-integer (elt line-elems 3)))))))
+        (if (eq type :unknown)
+            (make-instance 'unknown
+                           :display-string "Unknown or Invalid line"
+                           :selector ""
+                           :hostname "error.host"
+                           :port 1)
+            (make-instance (class-for-type type)
+                           :display-string (elt line-elems 0)
+                           :selector (elt line-elems 1)
+                           :hostname (elt line-elems 2)
+                           :port (parse-integer (elt line-elems 3))))))))
 
 (defmacro with-gopher-socket-for-selector ((stream host port selector) &rest body)
   (let ((sock (gensym "sock")))

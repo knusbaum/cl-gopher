@@ -21,6 +21,7 @@
    html-file
    info-message
    sound-file
+   unknown ;Used for unidentifiable or invalid lines
 
    ;; Line class accessors
    display-string
