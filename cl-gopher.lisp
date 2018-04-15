@@ -340,8 +340,10 @@
   (if (and (>= (length path) 2)
            (equal (elt path 0) #\/)
            (type-for-character (elt path 1)))
-      (type-for-character (elt path 1))
-      (error 'bad-uri-error :uri uri)))
+      (let ((type (type-for-character (elt path 1))))
+        (if (not (equal type :unknown))
+            type
+            (error 'bad-uri-error :uri uri)))))
 
 (defun parse-gopher-uri (uri &key (display-string "???"))
   (when (not (null uri))
