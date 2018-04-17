@@ -1,7 +1,7 @@
 (asdf:defsystem #:cl-gopher
   :name "cl-gopher"
   :description "Gopher protocol client library"
-  :license "MIT"
+  :license "BSD 2-Clause"
   :author "Kyle Nusbaum"
   :depends-on (#:split-sequence #:usocket #:flexi-streams #:drakma #:bordeaux-threads #:quri)
   :components ((:file "cl-gopher-package")
