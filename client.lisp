@@ -20,6 +20,7 @@
 
 (defgeneric handle-line-selection (line &key input-stream output-stream))
 (defmethod handle-line-selection ((line gopher-line) &key (input-stream *standard-input*) (output-stream *standard-output*))
+  (declare (ignore input-stream output-stream))
   (get-line-contents line))
 
 (defmethod handle-line-selection ((line search-line) &key (input-stream *standard-input*) (output-stream *standard-output*))
