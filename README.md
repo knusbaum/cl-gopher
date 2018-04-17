@@ -14,7 +14,8 @@ A `GOPHER-LINE` represents a gopher menu item, (analogous to a html link)
 
 `GOPHER-LINE` has a number of subclasses, depending on the type of the gopher link.
 
-Lines can be created directly with `MAKE-INSTANCE`, by parsing gopher URIs with `PARSE-GOPHER-URI`, or by converting from an alist with `GOPHER-LINE-FROM-ALIST`
+Lines can be created directly with `MAKE-INSTANCE`, by parsing gopher URIs with `PARSE-GOPHER-URI`, by reading lines from a stream (e.g. to a server speaking the gopher protocol) with `READ-GOPHER-LINE`, or by converting from an alist with `GOPHER-LINE-FROM-ALIST`.
+
 Once you have a line, you have the ability to:
 * Retrieve the content it links to with `GET-LINE-CONTENTS` (contents explained more below)
 * Write the line out to a stream according to Gopher protocol with 'WRITE-GOPHER-LINE'
@@ -36,6 +37,37 @@ The classes currently are:
 All that is provided by the for working with contents objects are the slot accessors, and a generic function, `DISPLAY-CONTENTS`, which displays a contents object in human-readable format.
 
 ### Quick Examples:
+
+cl-gopher includes a simple text browser client to exemplify the use of the library. You can test it with:
+```
+CL-USER> (cl-gopher:text-browser)
+	Welcome to the SDF Public Access UNIX System .. est. 1987
+	
+	Official Site of the Internet Gopher Club Underground Syndicate
+	
+	We offer FREE and inexpensive memberships for people interested
+	in the UNIX system and internetworking.  Personal GOPHERSPACE
+	is available to all users as well as hundreds of UNIX utilities,
+	games and networking utilities.  We are a federally recognized
+	non-profit 501(c)7 organization and we are supported entirely
+	by donations and membership dues.  ssh://sdf.org
+	
+11     SUBMENU SDF PHLOGOSPHERE (226 phlogs)
+12     SUBMENU SDF GOPHERSPACE (1119 ACTIVE users)
+13     SUBMENU SDF GOPHERSPACE (1371 AGED users)
+14     SUBMENU SDF GOPHERSPACE (373 ANCIENT users)
+15     SUBMENU SDF Frequently Asked Questions (FAQ)
+16     SUBMENU SDF Accredited University Courses
+17     SUBMENU Software and Documentation for various computers
+18     SEARCH-LINE GopherSpace SEARCH Engine
+19     SUBMENU Floodgap's GOPHERSPACE
+	____________________________________________________________________________
+	                        Gophered by Gophernicus/97 on NetBSD/amd64 8.0_BETA
+Select a line number, or "help".
+> 
+```
+
+Example showing how to get and display the contents of a gopher uri:
 ```
 CL-USER> (cl-gopher:display-contents
            (cl-gopher:get-line-contents
@@ -63,32 +95,6 @@ CL-USER> (cl-gopher:display-contents
 	____________________________________________________________________________
 	                        Gophered by Gophernicus/97 on NetBSD/amd64 8.0_BETA
 
-```
-CL-USER> (cl-gopher:text-browser)
-	Welcome to the SDF Public Access UNIX System .. est. 1987
-	
-	Official Site of the Internet Gopher Club Underground Syndicate
-	
-	We offer FREE and inexpensive memberships for people interested
-	in the UNIX system and internetworking.  Personal GOPHERSPACE
-	is available to all users as well as hundreds of UNIX utilities,
-	games and networking utilities.  We are a federally recognized
-	non-profit 501(c)7 organization and we are supported entirely
-	by donations and membership dues.  ssh://sdf.org
-	
-11     SUBMENU SDF PHLOGOSPHERE (226 phlogs)
-12     SUBMENU SDF GOPHERSPACE (1119 ACTIVE users)
-13     SUBMENU SDF GOPHERSPACE (1371 AGED users)
-14     SUBMENU SDF GOPHERSPACE (373 ANCIENT users)
-15     SUBMENU SDF Frequently Asked Questions (FAQ)
-16     SUBMENU SDF Accredited University Courses
-17     SUBMENU Software and Documentation for various computers
-18     SEARCH-LINE GopherSpace SEARCH Engine
-19     SUBMENU Floodgap's GOPHERSPACE
-	____________________________________________________________________________
-	                        Gophered by Gophernicus/97 on NetBSD/amd64 8.0_BETA
-Select a line number, or "help".
-> 
 ```
 
 A very basic example of how a server could use the library. Assume remote-sock is a socket connected to a client:
