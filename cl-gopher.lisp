@@ -134,8 +134,8 @@
     (format stream "String: [~a], Selector: [~a], Host: [~a:~a]"
             (display-string gl) (selector gl) (hostname gl) (port gl))))
 
-(defgeneric marshall-gopher-line (gl))
-(defmethod marshall-gopher-line ((gl gopher-line))
+(defgeneric gopher-line-to-alist (gl))
+(defmethod gopher-line-to-alist ((gl gopher-line))
   (let ((lst))
     (push (cons :line-type (line-type gl)) lst)
     (push (cons :display-string (display-string gl)) lst)
@@ -144,11 +144,11 @@
     (push (cons :port (port gl)) lst)
     lst))
 
-(defun marshall-gopher-lines (gls)
+(defun gopher-lines-to-alist (gls)
   (loop for line in gls
-        collect (marshall-gopher-line line)))
+        collect (gopher-line-to-alist line)))
 
-(defun unmarshall-gopher-line (gl)
+(defun gopher-line-from-alist (gl)
   (let ((line-type (cdr (assoc :line-type gl))))
     (make-instance (class-for-type line-type)
                    :display-string (cdr (assoc :display-string gl))
@@ -156,9 +156,9 @@
                    :hostname (cdr (assoc :hostname gl))
                    :port (cdr (assoc :port gl)))))
 
-(defun unmarshall-gopher-lines (gls)
+(defun gopher-lines-from-alist (gls)
   (loop for line in gls
-        collect (unmarshall-gopher-line line)))
+        collect (gopher-line-from-alist line)))
 
 (define-condition bad-submenu-error (error) ())
 

@@ -49,10 +49,10 @@
 
    ;; Convert gopher line classes to/from lisp
    ;; forms that can be read/written to files, etc.
-   marshall-gopher-line
-   marshall-gopher-lines
-   unmarshall-gopher-line
-   unmarshall-gopher-lines
+   gopher-line-to-alist
+   gopher-lines-to-alist
+   gopher-line-from-alist
+   gopher-lines-from-alist
 
    ;; Reading gopher lines from a stream
    read-gopher-line
