@@ -18,7 +18,7 @@ Lines can be created directly with `MAKE-INSTANCE`, by parsing gopher URIs with 
 
 Once you have a line, you have the ability to:
 * Retrieve the content it links to with `GET-LINE-CONTENTS` (contents explained more below)
-* Write the line out to a stream according to Gopher protocol with 'WRITE-GOPHER-LINE'
+* Write the line out to a stream according to Gopher protocol with `WRITE-GOPHER-LINE`
 * Convert the line to and from an alist format with `GOPHER-LINE-TO-ALIST`, `GOPHER-LINE-FROM-ALIST`, `GOPHER-LINES-TO-ALIST` and `GOPHER-LINES-FROM-ALIST`. This is useful if you want to `READ` lines from a file, or `WRITE` lines to a file.
 * Display the line in a human-readable way with `DISPLAY-LINE` or `DISPLAY-LINES`
 * Download the raw content bytes of a link's target to a file with `DOWNLOAD-FILE`
