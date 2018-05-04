@@ -42,6 +42,9 @@ To load "cl-gopher":
 Note: This documentation assumes you know a bit about the gopher protocol, and doesn't cover
 the protocol's basic workings.
 
+Most of the functions and classes have documentation strings attached to them. For better
+descriptions of the functions in the library, see that documentation.
+
 ### Gopher Lines
 The main class this library deals with is the `GOPHER-LINE`.
 A `GOPHER-LINE` represents a gopher menu item, (analogous to a html link)
@@ -83,6 +86,13 @@ a generic function, `DISPLAY-CONTENTS`, which displays a contents object in huma
 format.
 
 ### Quick Examples:
+
+To get the contents of a gopher URI, Try the following:
+```
+CL-USER> (cl-gopher:display-contents
+          (cl-gopher:get-line-contents 
+           (cl-gopher:parse-gopher-uri "gopher://sdf.org/")))
+```
 
 cl-gopher includes a simple text browser client to exemplify the use of the library. You can test it with:
 ```

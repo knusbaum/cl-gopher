@@ -1,5 +1,24 @@
 (defpackage :cl-gopher
   (:use :cl :split-sequence)
+  (:documentation
+   #.(format nil "cl-gopher is a Common Lisp library for interacting with~@
+                  the Gopher protocol. It is suitable for building both~@
+                  clients and servers, and provides a sample client.~@
+                  See (describe 'cl-gopher:text-browser) and~@
+                  (describe 'cl-gopher:network-browser)~@
+                  ~@
+                  cl-gopher has been tested and confirmed to work with:~@
+                  SBCL 1.4.6~@
+                  ClozureCL Version 1.11.5/v1.11.5~@
+                  ECL 16.1.3~@
+                  ~@
+                  Most classes and functions have documentation associated~@
+                  with them, and can be shown with the DESCRIBE function.~@
+                  ~@
+                  For a brief overview, look at the readme distributed with~@
+                  the source, or available at~@
+                  https://github.com/knusbaum/cl-gopher/blob/master/README.md"))
+
   (:export
    ;; Line classes
    gopher-line
@@ -67,6 +86,7 @@
    ;; Parse a gopher URI
    parse-gopher-uri
    uri-for-gopher-line
+   bad-uri-error
 
    ;; Various util functions
    line-type

@@ -1,21 +1,59 @@
 (in-package :cl-gopher)
 
-(defclass selector-contents () ())
+(defclass selector-contents () ()
+  (:documentation
+   #.(format nil "A SELECTOR-CONTENTS object contains the contents pointed~@
+                  to by a GOPHER-LINE object. This class is never directly~@
+                  used, but instead, one of its subclasses is returned~@
+                  when calling GET-LINE-CONTENTS.")))
 
 (defclass submenu-contents (selector-contents)
-  ((lines :initform nil :initarg :lines :accessor lines)))
+  ((lines :initform nil :initarg :lines :accessor lines))
+  (:documentation
+   #.(format nil "A SUBMENU-CONTENTS object contains a gopher submenu.~@
+                  The single slot, LINES, is a list of GOPHER-LINE~@
+                  objects representing all of the menu items in the~@
+                  submenu.")))
 
 (defclass text-file-contents (selector-contents)
-  ((lines :initform nil :initarg :lines :accessor lines)))
+  ((lines :initform nil :initarg :lines :accessor lines))
+  (:documentation
+   #.(format nil "A TEXT-FILE-CONTENTS object contains a text file.~@
+                  The single slot, LINES, is a list of string, each~@
+                  element of which is a single line of text from the~@
+                  text file.")))
 
 (defclass html-file-contents (selector-contents)
-  ((content-string :initform nil :initarg :content-string :accessor content-string)))
+  ((content-string :initform nil :initarg :content-string :accessor content-string))
+  (:documentation
+   #.(format nil "An HTML-FILE-CONTENTS object contains the raw html~@
+                  text pointed to by an HTML-FILE object (a type of~@
+                  GOPHER-LINE). You may or may not find this useful,~@
+                  since often when dealing with HTTP links through~@
+                  gopher, it is more useful to deal with the URL,~@
+                  which is available through the HTML-FILE object.")))
 
 (defclass binary-file-contents (selector-contents)
   ((file-name :initform nil :initarg :file-name :accessor file-name)
-   (content-array :initform nil :initarg :content-array :accessor content-array)))
+   (content-array :initform nil :initarg :content-array :accessor content-array))
+  (:documentation
+   #.(format nil "A BINARY-FILE-CONTENTS object contains the bytes~@
+                  from various GOPHER-LINE subclasses, such as~@
+                  BINARY-FILE, IMAGE, GIF, PNG, SOUND-FILE, etc.~@
+                  ~@
+                  The FILE-NAME slot is just a convenience for the~@
+                  user, in case they wish to write the contents to~@
+                  a file locally, with a similar name to that~@
+                  suggested by the GOPHER-LINE selector.~@
+                  ~@
+                  The CONTENT-ARRAY is a vector of (UNSIGNED-BYTE 8)~@
+                  which contains all the bytes from the file.")))
 
-(defgeneric display-contents (contents &key stream))
+(defgeneric display-contents (contents &key stream)
+  (:documentation
+   #.(format nil "DISPLAY-CONTENTS will write out a contents object in a~@
+                  human-readable format to the stream STREAM.")))
+
 (defmethod display-contents ((contents submenu-contents) &key (stream *standard-output*))
   (display-lines (lines contents) :with-line-nums t :stream stream))
 
@@ -34,7 +72,15 @@
   ((display-string :initform nil :initarg :display-string :accessor display-string)
    (selector :initform nil :initarg :selector :accessor selector)
    (hostname :initform nil :initarg :hostname :accessor hostname)
-   (port :initform nil :initarg :port :accessor port)))
+   (port :initform nil :initarg :port :accessor port))
+  (:documentation
+   #.(format nil "A GOPHER-LINE represents a gopher menu item,~@
+                  (analogous to an html link).~@
+                  ~@
+                  See the subclasses of GOPHER-LINE, which represent~@
+                  the various kinds of menu items supported by this~@
+                  library.")))
+
 
 (defclass text-file (gopher-line) ())
 (defclass submenu (gopher-line) ())
@@ -61,6 +107,8 @@
   (find-symbol (string type) :cl-gopher))
 
 (defun line-type (gl)
+  #.(format nil "LINE-TYPE returns a keyword describing the type of the~@
+                 GOPHER-LINE gl.")
   (find-symbol (string (type-of gl)) :keyword))
 
 (defun type-for-character (c)
@@ -106,7 +154,11 @@
 (defmethod type-character ((gl sound-file)) #\s)
 (defmethod type-character ((gl gopher-line)) #\?) ; Catch-all
 
-(defgeneric copy-gopher-line (gl))
+(defgeneric copy-gopher-line (gl)
+  (:documentation
+   #.(format nil "Returns a new GOPHER-LINE that is a copy of the~@
+                  GOPHER-LINE gl.")))
+
 (defmethod copy-gopher-line ((gl gopher-line))
   (make-instance (class-of gl)
                  :display-string (display-string gl)
@@ -123,6 +175,16 @@
                  :terms (terms gl)))
 
 (defun convert-to-text-line (gl)
+  #.(format nil "CONVERT-TO-TEXT-LINE takes a GOPHER-LINE and returns~@
+                 a copy of it that is of type TEXT-FILE.~@
+                 ~@
+                 This is only seldom useful, but can be used in case~@
+                 you want to treat a gopher resource as a text file~@
+                 rather than whatever kind of resource it actually is.~@
+                 ~@
+                 For example, this can be used to treat a gopher menu~@
+                 as a plain-text file, allowing you to see the lines~@
+                 as the protocol specifies.")
   (make-instance 'text-file
                  :display-string (display-string gl)
                  :selector (selector gl)
@@ -134,7 +196,14 @@
     (format stream "String: [~a], Selector: [~a], Host: [~a:~a]"
             (display-string gl) (selector gl) (hostname gl) (port gl))))
 
-(defgeneric gopher-line-to-alist (gl))
+(defgeneric gopher-line-to-alist (gl)
+  (:documentation
+   #.(format nil "GOPHER-LINE-TO-ALIST converts a GOPHER-LINE object to~@
+                  an alist. These alists are suitable to be read/written~@
+                  by the lisp reader and writer. This can be useful in~@
+                  conjunction with GOPHER-LINE-FROM-ALIST, which performs~@
+                  the reverse operation.")))
+
 (defmethod gopher-line-to-alist ((gl gopher-line))
   (let ((lst))
     (push (cons :line-type (line-type gl)) lst)
@@ -145,10 +214,16 @@
     lst))
 
 (defun gopher-lines-to-alist (gls)
+  #.(format nil "GOPHER-LINES-TO-ALIST converts a list of GOPHER-LINE to~@
+                 a list of alist using the GOPHER-LINE-TO-ALIST function.")
   (loop for line in gls
         collect (gopher-line-to-alist line)))
 
 (defun gopher-line-from-alist (gl)
+  #.(format nil "GOPHER-LINE-FROM-ALIST converts an alist to a GOPHER-LINE.~@
+                 This is primarily useful in conjunction with the function~@
+                 GOPHER-LINE-TO-ALIST, which converts a GOPHER-LINE to an~@
+                 alist.")
   (let ((line-type (cdr (assoc :line-type gl))))
     (make-instance (class-for-type line-type)
                    :display-string (cdr (assoc :display-string gl))
@@ -157,6 +232,9 @@
                    :port (cdr (assoc :port gl)))))
 
 (defun gopher-lines-from-alist (gls)
+  #.(format nil "GOPHER-LINES-FROM-ALIST converts a list of alists to a~@
+                 list of GOPHER-LINES using the GOPHER-LINE-FROM-ALIST~@
+                 function.")
   (loop for line in gls
         collect (gopher-line-from-alist line)))
 
@@ -181,6 +259,10 @@
 
 
 (defun read-gopher-line (is)
+  #.(format nil "READ-GOPHER-LINE reads and returns a GOPHER-LINE from a~@
+                 stream that contains gopher lines in the format a gopher~@
+                 server should return upon request of a gopher menu,~@
+                 specified by RFC 1436 (https://tools.ietf.org/html/rfc1436)")
   (let* ((line (read-line is nil nil)))
     (when (and line
                (not (equal line "."))
@@ -211,7 +293,13 @@
          (close ,stream)
          (usocket:socket-close ,sock)))))
 
-(defgeneric get-line-contents (gl))
+(defgeneric get-line-contents (gl)
+  (:documentation
+   #.(format nil "GET-LINE-CONTENTS takes a GOPHER-LINE and returns an~@
+                  object of type SELECTOR-CONTENTS (or one of its subclasses)~@
+                  It does this by contacting the target server and requesting~@
+                  the resource represented by the GOPHER-LINE.")))
+
 (defmethod get-line-contents ((gl gopher-line))
   (let ((byte-arr (make-array 0 :element-type '(unsigned-byte 8) :adjustable t :fill-pointer 0)))
     (with-slots (hostname port selector) gl
@@ -258,7 +346,24 @@
       (make-instance 'html-file-contents
                      :content-string (drakma:http-request (subseq selector 4))))))
 
-(defgeneric display-line (gl &key stream line-number show-target include-newline))
+(defgeneric display-line (gl &key stream line-number show-target include-newline)
+  (:documentation
+   #.(format nil "Display a GOPHER-LINE in a human-readable format. This~@
+                  is suitable for displaying lines from a menu in a text~@
+                  based client.~@
+                  ~@
+                  STREAM - the stream to write the line to. Defaults to~@
+                           *STANDARD-OUTPUT*~@
+                  ~@
+                  LINE-NUMBER - if specified, a number to display at the~@
+                                beginning of the line.~@
+                  ~@
+                  SHOW-TARGET - if not nil, display the gopher URI~@
+                                that the line links to.~@
+                  ~@
+                  INCLUDE-NEWLINE - if not nil, include a newline at the~@
+                                    end of the line.")))
+
 (defmethod display-line ((gl gopher-line) &key (stream *standard-output*) line-number show-target include-newline)
   (if show-target
       (format stream "~6a ~14a ~a    ~a:~a~a~:[~;~%~]"
@@ -274,13 +379,28 @@
   (format stream "~a~a~:[~;~%~]" #\tab (display-string gl) include-newline))
 
 (defun display-lines (lines &key (stream *standard-output*) with-line-nums show-target)
+  #.(format nil "DISPLAY-LINES displays a list of GOPHER-LINE in a human-~@
+                 readable way on STREAM by calling DISPLAY-LINE.~@
+                 ~@
+                 WITH-LINE-NUMS - if not nil, pass a LINE-NUMBER argument~@
+                                  to DISPLAY-LINE corresponding to the~@
+                                  line's index in LINES.~@
+                 ~@
+                 SHOW-TARGET - if not nil, display the gopher URI~@
+                               that the line links to.")
   (loop for elem in lines
         for i from 0
         do (if with-line-nums
                (display-line elem :stream stream :show-target show-target :line-number i :include-newline t)
                (display-line elem :stream stream :show-target show-target :include-newline t))))
 
-(defgeneric write-gopher-line (gl &key stream))
+(defgeneric write-gopher-line (gl &key stream)
+  (:documentation
+   #.(format nil "Write out a gopher line to a stream, such that a gopher~@
+                  client reading the stream on the other end will be able~@
+                  to read the line, according to RFC 1436~@
+                  (https://tools.ietf.org/html/rfc1436)")))
+
 (defmethod write-gopher-line ((gl gopher-line) &key (stream *standard-output*))
   (format stream "~c~a~c~a~c~a~c~a~%"
           (type-character gl)
@@ -301,6 +421,11 @@
           #\Tab))
 
 (defun download-file (destfile gl)
+  #.(format nil "Download a file pointed to by the GOPHER-LINE gl.~@
+                 DESTFILE should be a pathname or string. If DESTFILE~@
+                 exists, it will be overwritten. This function just~@
+                 writes out whatever bytes are returned by the gopher~@
+                 server returns for the GOPHER-LINE.")
   (with-slots (hostname port selector) gl
     (with-gopher-socket-for-selector (sock-stream hostname port selector)
       (with-open-file (os destfile :direction :output :if-exists :supersede :element-type '(unsigned-byte 8))
@@ -346,6 +471,8 @@
             (error 'bad-uri-error :uri uri)))))
 
 (defun parse-gopher-uri (uri &key (display-string "???"))
+  #.(format nil "PARSE-GOPHER-URI takes a gopher uri as a string, and~@
+                 returns a GOPHER-LINE for it.")
   (when (not (null uri))
     (let* ((uri
             (if (and (>= (length uri) 9) (equal "gopher://" (subseq uri 0 9)))
@@ -363,6 +490,9 @@
                      :port port))))
 
 (defun uri-for-gopher-line (gl)
+  #.(format nil "URI-FOR-GOPHER-LINE takes a GOPHER-LINE and returns~@
+                 a string containing a gopher uri representing the~@
+                 resource the line points to.")
   (if (or (null (selector gl))
           (equal (selector gl) "")
           (equal (selector gl) "/"))
