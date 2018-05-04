@@ -5,7 +5,21 @@ cl-gopher is a Common Lisp library for interacting with the
 
 It is suitable for building both clients and servers, and provides a sample client.
 
+cl-gopher has been tested and confirmed to work with:
+* SBCL 1.4.6
+* ClozureCL Version 1.11.5/v1.11.5
+* ECL 16.1.3
+
 ## Installation
+
+`cl-gopher` is now available through quicklisp!
+```
+CL-USER> (ql:quickload 'cl-gopher)
+```
+
+---
+
+If you want to use the source from this repo, rather than that distributed with quicklisp:
 
 Make sure that the source is somewhere that asdf or quicklisp can find it.
 If you're not using quicklisp, consult the .asd file for required dependencies.
