@@ -478,16 +478,23 @@
             (if (and (>= (length uri) 9) (equal "gopher://" (subseq uri 0 9)))
                 (quri:uri uri)
                 (quri:uri (format nil "gopher://~a" uri))))
-           (path (quri:uri-path uri))
+           (path (quri:url-decode (quri:uri-path uri)))
            (item-type (compute-item-type uri path))
            (selector (compute-selector uri path))
+           (tab-split-selector (uiop:split-string selector :separator '(#\Tab)))
+           (selector (first tab-split-selector))
+           (terms (second tab-split-selector))
+           (gopher+string (third tab-split-selector))
            (host (quri:uri-host uri))
            (port (or (quri:uri-port uri) 70)))
-      (make-instance (class-for-type item-type)
-                     :display-string display-string
-                     :selector selector
-                     :hostname host
-                     :port port))))
+      (declare (ignore gopher+string))
+      (apply #'make-instance (class-for-type item-type)
+             :display-string display-string
+             :selector selector
+             :hostname host
+             :port port
+             (when (and terms (eq item-type :search-line))
+               `(:terms ,terms))))))
 
 (defun uri-for-gopher-line (gl)
   #.(format nil "URI-FOR-GOPHER-LINE takes a GOPHER-LINE and returns~@
