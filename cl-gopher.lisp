@@ -72,7 +72,8 @@
   ((display-string :initform nil :initarg :display-string :accessor display-string)
    (selector :initform nil :initarg :selector :accessor selector)
    (hostname :initform nil :initarg :hostname :accessor hostname)
-   (port :initform nil :initarg :port :accessor port))
+   (port :initform nil :initarg :port :accessor port)
+   (terms :initform "" :initarg :terms :accessor terms))
   (:documentation
    #.(format nil "A GOPHER-LINE represents a gopher menu item,~@
                   (analogous to an html link).~@
@@ -89,8 +90,7 @@
 (defclass binhex-file (gopher-line) ())
 (defclass dos-file (gopher-line) ())
 (defclass uuencoded-file (gopher-line) ())
-(defclass search-line (gopher-line)
-  ((terms :initform "" :initarg :terms :accessor terms)))
+(defclass search-line (gopher-line))
 (defclass telnet (gopher-line) ())
 (defclass binary-file (gopher-line) ())
 (defclass mirror (gopher-line) ())
@@ -161,13 +161,6 @@
 
 (defmethod copy-gopher-line ((gl gopher-line))
   (make-instance (class-of gl)
-                 :display-string (display-string gl)
-                 :selector (selector gl)
-                 :hostname (hostname gl)
-                 :port (port gl)))
-
-(defmethod copy-gopher-line ((gl search-line))
-  (make-instance 'search-line
                  :display-string (display-string gl)
                  :selector (selector gl)
                  :hostname (hostname gl)
@@ -491,8 +484,7 @@
              :selector selector
              :hostname host
              :port port
-             (when (and terms (eq item-type :search-line))
-               `(:terms ,terms))))))
+             :terms terms))))
 
 (defun uri-for-gopher-line (gl)
   #.(format nil "URI-FOR-GOPHER-LINE takes a GOPHER-LINE and returns~@
