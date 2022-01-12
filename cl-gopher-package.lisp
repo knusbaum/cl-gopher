@@ -1,5 +1,5 @@
 (defpackage :cl-gopher
-  (:use :cl :split-sequence)
+  (:use :cl)
   (:documentation
    #.(format nil "cl-gopher is a Common Lisp library for interacting with~@
                   the Gopher protocol. It is suitable for building both~@
