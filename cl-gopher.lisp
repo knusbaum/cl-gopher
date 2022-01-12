@@ -490,10 +490,11 @@
   #.(format nil "URI-FOR-GOPHER-LINE takes a GOPHER-LINE and returns~@
                  a string containing a gopher uri representing the~@
                  resource the line points to.")
-  (format nil "gopher://~a~:[:~a~;~*~]/~@[~*~c~a~]"
+  (format nil "gopher://~a~:[:~a~;~*~]/~@[~*~c~a~]~@[~*%09~a~]"
           (hostname gl)
           (eql (port gl) 70) (port gl)
           (not (or (null (selector gl))
                    (equal (selector gl) "")
                    (equal (selector gl) "/")))
-          (type-character gl) (selector gl)))
+          (type-character gl) (selector gl)
+          (not (uiop:emptyp (terms gl))) (terms gl)))
