@@ -90,7 +90,7 @@
 (defclass binhex-file (gopher-line) ())
 (defclass dos-file (gopher-line) ())
 (defclass uuencoded-file (gopher-line) ())
-(defclass search-line (gopher-line))
+(defclass search-line (gopher-line) ())
 (defclass telnet (gopher-line) ())
 (defclass binary-file (gopher-line) ())
 (defclass mirror (gopher-line) ())
@@ -479,12 +479,12 @@
            (terms (second tab-split-selector))
            (host (quri:uri-host uri))
            (port (or (quri:uri-port uri) 70)))
-      (apply #'make-instance (class-for-type item-type)
-             :display-string display-string
-             :selector selector
-             :hostname host
-             :port port
-             :terms terms))))
+      (make-instance (class-for-type item-type)
+                     :display-string display-string
+                     :selector selector
+                     :hostname host
+                     :port port
+                     :terms terms))))
 
 (defun uri-for-gopher-line (gl)
   #.(format nil "URI-FOR-GOPHER-LINE takes a GOPHER-LINE and returns~@
@@ -497,4 +497,4 @@
                    (equal (selector gl) "")
                    (equal (selector gl) "/")))
           (type-character gl) (selector gl)
-          (not (uiop:emptyp (terms gl))) (terms gl)))
+          (not (uiop:emptyp (terms gl))) (quri:url-encode (terms gl))))
