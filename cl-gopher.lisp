@@ -497,4 +497,4 @@
                    (equal (selector gl) "")
                    (equal (selector gl) "/")))
           (type-character gl) (selector gl)
-          (not (uiop:emptyp (terms gl))) (terms gl)))
+          (not (uiop:emptyp (terms gl))) (quri:url-encode (terms gl))))
