@@ -90,7 +90,7 @@
 (defclass binhex-file (gopher-line) ())
 (defclass dos-file (gopher-line) ())
 (defclass uuencoded-file (gopher-line) ())
-(defclass search-line (gopher-line))
+(defclass search-line (gopher-line) ())
 (defclass telnet (gopher-line) ())
 (defclass binary-file (gopher-line) ())
 (defclass mirror (gopher-line) ())
