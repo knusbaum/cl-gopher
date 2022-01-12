@@ -260,7 +260,7 @@
     (when (and line
                (not (equal line "."))
                (> (length line) 0))
-      (let ((line-elems (split-sequence #\tab (subseq line 1)))
+      (let ((line-elems (uiop:split-string (subseq line 1) :separator '(#\Tab)))
             (type (type-for-character (elt line 0))))
         (if (eq type :unknown)
             (make-unknown line-elems)
