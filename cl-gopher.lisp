@@ -479,12 +479,12 @@
            (terms (second tab-split-selector))
            (host (quri:uri-host uri))
            (port (or (quri:uri-port uri) 70)))
-      (apply #'make-instance (class-for-type item-type)
-             :display-string display-string
-             :selector selector
-             :hostname host
-             :port port
-             :terms terms))))
+      (make-instance (class-for-type item-type)
+                     :display-string display-string
+                     :selector selector
+                     :hostname host
+                     :port port
+                     :terms terms))))
 
 (defun uri-for-gopher-line (gl)
   #.(format nil "URI-FOR-GOPHER-LINE takes a GOPHER-LINE and returns~@
