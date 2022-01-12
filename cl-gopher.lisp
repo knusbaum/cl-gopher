@@ -484,10 +484,8 @@
            (tab-split-selector (uiop:split-string selector :separator '(#\Tab)))
            (selector (first tab-split-selector))
            (terms (second tab-split-selector))
-           (gopher+string (third tab-split-selector))
            (host (quri:uri-host uri))
            (port (or (quri:uri-port uri) 70)))
-      (declare (ignore gopher+string))
       (apply #'make-instance (class-for-type item-type)
              :display-string display-string
              :selector selector
