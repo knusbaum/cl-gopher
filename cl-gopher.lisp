@@ -275,7 +275,7 @@
     `(let* ((,sock (usocket:socket-connect ,host ,port :element-type '(unsigned-byte 8)))
             (,stream (flexi-streams:make-flexi-stream
                       (usocket:socket-stream ,sock)
-                      :external-format (flexi-streams:make-external-format :iso-8859-1
+                      :external-format (flexi-streams:make-external-format :utf-8
                                                                            :eol-style :crlf)))
             (babel-encodings:*suppress-character-coding-errors* t))
        (unwind-protect
