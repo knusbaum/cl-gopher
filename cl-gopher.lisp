@@ -305,7 +305,7 @@
                        :content-array byte-arr
                        :file-name filename)))))
 
-(defun retreive-submenu-contents (hostname port selector)
+(defun retrieve-submenu-contents (hostname port selector)
   (with-gopher-socket-for-selector (sock-stream hostname port selector)
     (make-instance 'submenu-contents
                    :lines (loop for line = (read-gopher-line sock-stream)
@@ -314,14 +314,14 @@
 
 (defmethod get-line-contents ((gl submenu))
   (with-slots (hostname port selector) gl
-    (retreive-submenu-contents hostname port selector)))
+    (retrieve-submenu-contents hostname port selector)))
 
 (defmethod get-line-contents ((gl search-line))
   (let ((selector (format nil "~a~a~a"
                           (selector gl)
                           #\tab
                           (terms gl))))
-    (retreive-submenu-contents (hostname gl) (port gl) selector)))
+    (retrieve-submenu-contents (hostname gl) (port gl) selector)))
 
 (defmethod get-line-contents ((gl text-file))
   (with-slots (hostname port selector) gl
