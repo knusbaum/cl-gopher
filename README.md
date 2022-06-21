@@ -166,7 +166,9 @@ CL-USER> (let ((lines (list
                                       :port 70
                                       :selector "/Documents"
                                       :display-string "View myserver.org's documents."))))
-           (mapcar (lambda (gl) (cl-gopher:write-gopher-line gl remote-sock)) lines))
+           (mapcar (lambda (gl) (cl-gopher:write-gopher-line gl :stream (usocket:socket-stream remote-sock))) lines)
+           (write-line "." (usocket:socket-stream remote-sock))
+           (force-output (usocket:socket-stream remote-sock)))
 ```
 Output sent to remote:
 ```
